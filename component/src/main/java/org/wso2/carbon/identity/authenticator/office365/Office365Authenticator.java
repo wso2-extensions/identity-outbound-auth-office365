@@ -118,7 +118,7 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
     public List<Property> getConfigurationProperties() {
 
         List<Property> configProperties = new ArrayList<>();
-        //Add your configuration properties
+
         Property clientId = new Property();
         clientId.setName(OIDCAuthenticatorConstants.CLIENT_ID);
         clientId.setDisplayName("Client Id");
