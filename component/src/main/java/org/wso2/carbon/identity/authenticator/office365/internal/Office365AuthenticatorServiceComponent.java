@@ -30,9 +30,9 @@ import java.util.Hashtable;
 /**
  * @scr.component name="identity.application.authenticator.office365.component" immediate="true"
  */
-public class office365AuthenticatorServiceComponent {
+public class Office365AuthenticatorServiceComponent {
 
-    private static Log log = LogFactory.getLog(office365AuthenticatorServiceComponent.class);
+    private static Log log = LogFactory.getLog(Office365AuthenticatorServiceComponent.class);
 
     protected void activate(ComponentContext ctxt) {
         try {
