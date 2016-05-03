@@ -14,6 +14,6 @@ Do the following:
 
 1. Navigate to office365-authenticator/org.wso2.carbon.extension.identity.authenticator.office365.connector-1.0.0.jar and build.
 
-2. Place org.wso2.carbon.extension.identity.authenticator.office365.connector-1.0.0.jar into <IS_HOME>/repository/components/dropins.
+2.Place org.wso2.carbon.extension.identity.authenticator.office365.connector-1.0.0.jar into < IS_HOME>/repository/components/dropins.
 
-3. Start the IS server and create Identity provider and service provider in IS via the IS console.
+3.Start the IS server and create Identity provider and service provider in IS via the IS console.

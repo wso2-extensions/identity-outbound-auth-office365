@@ -34,25 +34,25 @@ public class Office365AuthenticatorConstants {
     //The reply URL of the application.
     public static final String CALLBACK_URL = "callbackUrl";
     //The ID of the user
-    public static final String ID="Id";
+    public static final String ID = "Id";
     //The authorization code that the application requested.
-    public static final String CODE="code";
+    public static final String CODE = "code";
     //The response type
-    public static final String RESPONSE_TYPE="response_type";
+    public static final String RESPONSE_TYPE = "response_type";
     //Specifies the reply URL of the application.
-    public static final String REDIRECT_URI="redirect_uri";
+    public static final String REDIRECT_URI = "redirect_uri";
     //The App ID URI of the web API
-    public static final String OFFICE365_RESOURCE="https://outlook.office.com";
+    public static final String OFFICE365_RESOURCE = "https://outlook.office.com";
     //The Http get method
     public static final String HTTP_GET = "GET";
     //The Accept header
-    public static final String HEADER_ACCEPT="ACCEPT";
+    public static final String HEADER_ACCEPT = "ACCEPT";
     //The value of the Accept header
-    public static final String ODATA_ACCEPT_HEADER="application/json;odata.metadata=minimal";
+    public static final String ODATA_ACCEPT_HEADER = "application/json;odata.metadata=minimal";
     //The Authorization header
-    public static final String Authorization="Authorization";
+    public static final String Authorization = "Authorization";
     //The Bearer type
-    public static final String BEARER="Bearer ";
+    public static final String BEARER = "Bearer ";
     //A randomly generated non-reused value that is sent in the request and returned in the response.
-    public static final String STATE="state";
+    public static final String STATE = "state";
 }
