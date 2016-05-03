@@ -1,4 +1,3 @@
-### is-outbound-auth-Office365
 
 Welcome to the WSO2 Identity Server (IS) Office365 authenticator.
 
