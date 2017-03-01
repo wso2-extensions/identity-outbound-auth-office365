@@ -334,6 +334,3 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
         return builder.toString();
     }
 }
-
-
-

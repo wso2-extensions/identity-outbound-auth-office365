@@ -19,8 +19,13 @@
 
 package org.wso2.carbon.identity.authenticator.office365;
 
+/*
+ * Define all constants used for Office365 Authenticator.
+ */
 public class Office365AuthenticatorConstants {
+    //Authenticator name
     public static final String AUTHENTICATOR_NAME = "Office365Authenticator";
+    //Authenticator friendly name
     public static final String AUTHENTICATOR_FRIENDLY_NAME = "Office365";
     //office365 authorize endpoint URL
     public static final String office365_OAUTH_ENDPOINT = "https://login.microsoftonline.com/common/oauth2/authorize";
