@@ -34,6 +34,7 @@ import org.json.JSONObject;
 import org.wso2.carbon.identity.application.authentication.framework.AuthenticatorFlowStatus;
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
+import org.wso2.carbon.identity.application.authentication.framework.exception.ApplicationAuthenticatorException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
@@ -42,8 +43,7 @@ import org.wso2.carbon.identity.application.authenticator.oidc.OpenIDConnectAuth
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
-import org.wso2.carbon.identity.base.IdentityConstants;
-import org.wso2.carbon.identity.core.util.IdentityUtil;
+import org.wso2.carbon.identity.core.util.IdentityIOStreamUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -51,13 +51,17 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Authenticator of Outlook
+ * Authenticator of Office365.
+ *
+ * @since 1.0.1
  */
 public class Office365Authenticator extends OpenIDConnectAuthenticator implements FederatedApplicationAuthenticator {
 
@@ -65,6 +69,9 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
 
     /**
      * Get Outlook authorization endpoint.
+     *
+     * @param authenticatorProperties Office365 authenticatorProperties.
+     * @return Office365 oauth endpoint.
      */
     @Override
     protected String getAuthorizationServerEndpoint(Map<String, String> authenticatorProperties) {
@@ -73,6 +80,9 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
 
     /**
      * Get Outlook token endpoint.
+     *
+     * @param authenticatorProperties Office365 authenticatorProperties.
+     * @return Office365 token endpoint.
      */
     @Override
     protected String getTokenEndpoint(Map<String, String> authenticatorProperties) {
@@ -81,6 +91,10 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
 
     /**
      * Get Outlook user info endpoint.
+     *
+     * @param token                   OAuthClientResponse.
+     * @param authenticatorProperties Office365 authenticatorProperties.
+     * @return Office365 user info endpoint.
      */
     @Override
     protected String getUserInfoEndpoint(OAuthClientResponse token, Map<String, String> authenticatorProperties) {
@@ -89,6 +103,9 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
 
     /**
      * Check ID token in Outlook OAuth.
+     *
+     * @param authenticatorProperties Office365 authenticatorProperties.
+     * @return false.
      */
     @Override
     protected boolean requiredIDToken(Map<String, String> authenticatorProperties) {
@@ -96,7 +113,7 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
     }
 
     /**
-     * Get the friendly name of the Authenticator
+     * Get the friendly name of the Authenticator.
      */
     @Override
     public String getFriendlyName() {
@@ -104,7 +121,7 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
     }
 
     /**
-     * Get the name of the Authenticator
+     * Get the name of the Authenticator.
      */
     @Override
     public String getName() {
@@ -112,7 +129,7 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
     }
 
     /**
-     * Get Configuration Properties
+     * Get Configuration Properties.
      */
     @Override
     public List<Property> getConfigurationProperties() {
@@ -149,6 +166,9 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
 
     /**
      * Get the Context identifier sent with the request.
+     *
+     * @param request HttpServletRequest.
+     * @return A randomly generated non-reused value.
      */
     @Override
     public String getContextIdentifier(HttpServletRequest request) {
@@ -156,7 +176,10 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
     }
 
     /**
-     * Check whether the authentication or logout request can be handled by the authenticator
+     * Check whether the authentication or logout request can be handled by the authenticator.
+     *
+     * @param arg0 HttpServletRequest.
+     * @return true.
      */
     @Override
     public boolean canHandle(HttpServletRequest arg0) {
@@ -164,7 +187,14 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
     }
 
     /**
-     * Authenticator flow process
+     * Authenticator flow process.
+     *
+     * @param request  The request.
+     * @param response The response.
+     * @param context  The authentication context.
+     * @return Authentication flow status.
+     * @throws AuthenticationFailedException On error while authenticating.
+     * @throws LogoutFailedException         On error while login.
      */
     @Override
     public AuthenticatorFlowStatus process(HttpServletRequest request, HttpServletResponse response,
@@ -184,7 +214,12 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
     }
 
     /**
-     * initiate the authentication request
+     * Initiate the authentication request.
+     *
+     * @param request  The request.
+     * @param response The response.
+     * @param context  The authentication context.
+     * @throws AuthenticationFailedException On error while authenticating.
      */
     @Override
     protected void initiateAuthenticationRequest(HttpServletRequest request,
@@ -208,7 +243,12 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
     }
 
     /**
-     * Process the response of the office365 end-point
+     * Process the response of the office365 end-point.
+     *
+     * @param request  The request.
+     * @param response The response.
+     * @param context  The authentication context.
+     * @throws AuthenticationFailedException On error while authenticating.
      */
     @Override
     protected void processAuthenticationResponse(HttpServletRequest request, HttpServletResponse response,
@@ -230,8 +270,13 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
                 throw new AuthenticationFailedException("Access token is empty or null");
             }
             context.setProperty(OIDCAuthenticatorConstants.ACCESS_TOKEN, accessToken);
-            String json = sendRequest(Office365AuthenticatorConstants.office365_USERINFO_ENDPOINT,
-                    oAuthResponse.getParam(OIDCAuthenticatorConstants.ACCESS_TOKEN));
+            String json;
+            try {
+                json = fetchUserInfo(Office365AuthenticatorConstants.office365_USERINFO_ENDPOINT,
+                        oAuthResponse.getParam(OIDCAuthenticatorConstants.ACCESS_TOKEN));
+            } catch (ApplicationAuthenticatorException e) {
+                throw new AuthenticationFailedException("Error while getting user details", e);
+            }
             JSONObject obj = new JSONObject(json);
             Map<ClaimMapping, String> claims = getSubjectAttributes(oAuthResponse, authenticatorProperties);
             String id = claims.get(ClaimMapping.build(Office365AuthenticatorConstants.ID,
@@ -242,18 +287,18 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
             authenticatedUserObj.setAuthenticatedSubjectIdentifier(id);
             authenticatedUserObj.setUserAttributes(claims);
             context.setSubject(authenticatedUserObj);
-        } catch (OAuthProblemException | IOException e) {
+        } catch (OAuthProblemException e) {
             throw new AuthenticationFailedException("Authentication process failed", e);
         }
     }
 
     /**
-     * Get the oauth response
+     * Get the oauth response.
      *
-     * @param oAuthClient   OAuthClient
-     * @param accessRequest Access request to get accessToken
+     * @param oAuthClient   OAuthClient.
+     * @param accessRequest Access request to get accessToken.
      * @return Response OAuthClientResponse.
-     * @throws AuthenticationFailedException
+     * @throws AuthenticationFailedException On error while authenticating.
      */
     private OAuthClientResponse getOauthResponse(OAuthClient oAuthClient, OAuthClientRequest accessRequest)
             throws AuthenticationFailedException {
@@ -267,7 +312,7 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
     }
 
     /**
-     * Get the access request
+     * Get the access request.
      *
      * @param tokenEndPoint Office365 authorize endpoint URL.
      * @param clientId      The client ID of the client application that is registered in Azure AD.
@@ -275,7 +320,7 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
      * @param clientSecret  The value of the key that contains the client password.
      * @param callbackUrl   Specifies the reply URL of the application.
      * @return Response OAuthClientRequest.
-     * @throws AuthenticationFailedException
+     * @throws AuthenticationFailedException On error while authenticating.
      */
     private OAuthClientRequest getAccessRequest(String tokenEndPoint, String clientId, String code, String clientSecret,
                                                 String callbackUrl) throws AuthenticationFailedException {
@@ -296,15 +341,14 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
     }
 
     /**
-     * Request user claims from user info endpoint.
+     * Get office365 user details.
      *
      * @param url         User info endpoint.
      * @param accessToken Access token.
-     * @return Response string.
-     * @throws IOException
+     * @return User info details.
+     * @throws IOException On error while making connection.
      */
-    @Override
-    protected String sendRequest(String url, String accessToken) throws IOException {
+    protected String fetchUserInfo(String url, String accessToken) throws ApplicationAuthenticatorException {
 
         if (log.isDebugEnabled()) {
             log.debug("Claim URL: " + url);
@@ -312,25 +356,37 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
         if (url == null) {
             return StringUtils.EMPTY;
         }
-        URL obj = new URL(url);
-        HttpURLConnection urlConnection = (HttpURLConnection) obj.openConnection();
-        urlConnection.setRequestMethod(Office365AuthenticatorConstants.HTTP_GET);
-        urlConnection.setRequestProperty(Office365AuthenticatorConstants.HEADER_ACCEPT,
-                Office365AuthenticatorConstants.ODATA_ACCEPT_HEADER);
-        urlConnection.setRequestProperty(Office365AuthenticatorConstants.Authorization,
-                Office365AuthenticatorConstants.BEARER + accessToken);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-        StringBuilder builder = new StringBuilder();
-        String inputLine = reader.readLine();
-        while (inputLine != null) {
-            builder.append(inputLine).append("\n");
-            inputLine = reader.readLine();
+        StringBuilder jsonResponseCollector = new StringBuilder();
+        BufferedReader bufferedReader = null;
+        try {
+            URL obj = new URL(url);
+            HttpURLConnection urlConnection = (HttpURLConnection) obj.openConnection();
+            urlConnection.setRequestMethod(Office365AuthenticatorConstants.HTTP_GET);
+            urlConnection.setRequestProperty(Office365AuthenticatorConstants.HEADER_ACCEPT,
+                    Office365AuthenticatorConstants.ODATA_ACCEPT_HEADER);
+            urlConnection.setRequestProperty(Office365AuthenticatorConstants.Authorization,
+                    Office365AuthenticatorConstants.BEARER + accessToken);
+            bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
+            String inputLine = bufferedReader.readLine();
+            while (inputLine != null) {
+                jsonResponseCollector.append(inputLine).append("\n");
+                inputLine = bufferedReader.readLine();
+            }
+        } catch (MalformedURLException e) {
+            throw new ApplicationAuthenticatorException("MalformedURLException while generating the user info URL: "
+                    + url, e);
+        } catch (ProtocolException e) {
+            throw new ApplicationAuthenticatorException("ProtocolException while setting the request method: " +
+                    Office365AuthenticatorConstants.HTTP_GET + " for the URL: " + url, e);
+        } catch (IOException e) {
+            throw new ApplicationAuthenticatorException("Error when reading the response from " + url +
+                    "to update user claims", e);
+        } finally {
+            IdentityIOStreamUtils.closeReader(bufferedReader);
         }
-        reader.close();
-
-        if (log.isDebugEnabled() && IdentityUtil.isTokenLoggable(IdentityConstants.IdentityTokens.USER_ID_TOKEN)) {
-            log.debug("response: " + builder.toString());
+        if (log.isDebugEnabled()) {
+            log.debug("Receiving the response for the User info: " + jsonResponseCollector.toString());
         }
-        return builder.toString();
+        return jsonResponseCollector.toString();
     }
 }

@@ -21,6 +21,7 @@ package org.wso2.carbon.identity.authenticator.office365;
 
 /*
  * Define all constants used for Office365 Authenticator.
+ * @since 1.0.1
  */
 public class Office365AuthenticatorConstants {
     //Authenticator name
