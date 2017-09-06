@@ -207,9 +207,8 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
         if (StringUtils.isNotEmpty(request.getParameter(Office365AuthenticatorConstants.CODE))) {
             processAuthenticationResponse(request, response, context);
             return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
-        } else {
-            initiateAuthenticationRequest(request, response, context);
         }
+        initiateAuthenticationRequest(request, response, context);
         return AuthenticatorFlowStatus.INCOMPLETE;
     }
 
