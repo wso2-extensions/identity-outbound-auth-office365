@@ -55,4 +55,8 @@ public class Office365AuthenticatorConstants {
     public static final String BEARER = "Bearer ";
     //A randomly generated non-reused value that is sent in the request and returned in the response.
     public static final String STATE = "state";
+    //The authenticator that the application requested.
+    public static final String PARAM_AUTHENTICATOR = "authenticator";
+    //The idp that the application requested.
+    public static final String PARAM_IDP = "idp";
 }
