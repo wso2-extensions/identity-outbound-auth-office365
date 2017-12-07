@@ -156,14 +156,6 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
     }
 
     /**
-     * Check whether the authentication or logout request can be handled by the authenticator
-     */
-    @Override
-    public boolean canHandle(HttpServletRequest arg0) {
-        return true;
-    }
-
-    /**
      * Authenticator flow process
      */
     @Override
