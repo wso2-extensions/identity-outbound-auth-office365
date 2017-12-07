@@ -156,23 +156,6 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
     }
 
     /**
-     * Check whether the authentication or logout request can be handled by the authenticator
-     */
-    @Override
-    public boolean canHandle(HttpServletRequest request) {
-
-        if (request.getParameter(Office365AuthenticatorConstants.CODE) != null &&
-                Office365AuthenticatorConstants.AUTHENTICATOR_NAME.equals(
-                        request.getParameter(Office365AuthenticatorConstants.PARAM_AUTHENTICATOR)) &&
-                Office365AuthenticatorConstants.AUTHENTICATOR_FRIENDLY_NAME.equals(
-                        request.getParameter(Office365AuthenticatorConstants.PARAM_IDP))) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
      * Authenticator flow process
      */
     @Override
