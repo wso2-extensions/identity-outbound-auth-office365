@@ -156,6 +156,30 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
     }
 
     /**
+     * Check whether the authentication or logout request can be handled by the authenticator
+     */
+    @Override
+    public boolean canHandle(HttpServletRequest request) {
+
+        if (request.getParameter(Office365AuthenticatorConstants.CODE) != null &&
+                request.getParameter(OIDCAuthenticatorConstants.OAUTH2_PARAM_STATE) != null &&
+                Office365AuthenticatorConstants.AUTHENTICATOR_FRIENDLY_NAME.equals(getLoginType(request))) {
+            return true;
+        }
+
+        return false;
+    }
+
+    protected String getLoginType(HttpServletRequest request) {
+        String state = request.getParameter(OIDCAuthenticatorConstants.OAUTH2_PARAM_STATE);
+        if (state != null) {
+            return state.split(",")[1];
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * Authenticator flow process
      */
     @Override
@@ -186,7 +210,8 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
         String clientId = authenticatorProperties.get(OIDCAuthenticatorConstants.CLIENT_ID);
         String redirectUri = authenticatorProperties.get(Office365AuthenticatorConstants.CALLBACK_URL);
         String loginPage = getAuthorizationServerEndpoint(context.getAuthenticatorProperties());
-        String queryParams = Office365AuthenticatorConstants.STATE + "=" + context.getContextIdentifier();
+        String queryParams = Office365AuthenticatorConstants.STATE + "=" + context.getContextIdentifier()
+                + "," + Office365AuthenticatorConstants.AUTHENTICATOR_FRIENDLY_NAME;
         try {
             response.sendRedirect(response.encodeRedirectURL(loginPage + "?" + queryParams + "&" +
                     Office365AuthenticatorConstants.CLIENT_ID + "=" + clientId + "&" +
@@ -326,6 +351,5 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
         return builder.toString();
     }
 }
-
 
 
