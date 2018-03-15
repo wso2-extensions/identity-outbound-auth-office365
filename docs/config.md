@@ -20,38 +20,47 @@ This is tested for the Office365 API version 2.0.
 ### Configuring the Office365 App
  1. Navigate to [https://products.office.com/en-us/business/compare-office-365-for-business-plans](https://products.office.com/en-us/business/compare-office-365-for-business-plans) to create an account for Office365.
      
- 2. Associate an Azure subscription with Office 365 account (Azure AD) and Register a new application in the Azure classic portal.
+ 2. Associate an Azure subscription with Office 365 account (Azure AD).
 
-    a. If you have an existing Microsoft Azure subscription:
-       * Log on to the [Microsoft Azure Management portal](https://login.microsoftonline.com/common/oauth2/authorize?resource=https%3a%2f%2fmanagement.core.windows.net%2f&response_mode=form_post&response_type=code+id_token&scope=user_impersonation+openid&state=OpenIdConnect.AuthenticationProperties%3dKacUNidcHXlixnHEGpOm3zw3NCnurAxht3Y2rZa3Bg-LzJg6eC0mvtU3gTxOY4MzmZSX3nKUDRyk8LT6L86JUJfp038_1tlBTF-J0cL_yeo_ZOk0cgTfVKvxrL66-laSnHw4R_YXA0VaGe1HmHvvJ5blPCYwoY7xuoZWmn3bMTgMVOc4nxH-50KaxHyNFuypnUcDE-VIdKrS2niFDWDLaSPIbMM&nonce=636565268366247669.NTg2YWFmYjQtZTM2YS00NjcxLWIwNjAtNTUwMDRhNzU2NWNhYjUxZjBlNjEtN2RjYy00ODkyLWJlMzEtNWIxYTMyZjg0Njcy&client_id=c44b4083-3bb0-49c1-b47d-974e53cbdf3c&redirect_uri=https%3a%2f%2fportal.azure.com%2fsignin%2findex%2f&site_id=501430&client-request-id=c2349dd4-89d5-4c01-aa99-c91cb4d44c75&x-client-SKU=ID_NET&x-client-ver=1.0.40306.1554) with your existing office365 credentials.
-       * Select the  **Azure Active Directory** from left panel, then select the **App Registrations** tab and at the top of the screen, select **New Application Registration**.
+    a. If you have an existing Microsoft Azure subscription, then log on to the [Microsoft Azure Management portal](https://login.microsoftonline.com/common/oauth2/authorize?resource=https%3a%2f%2fmanagement.core.windows.net%2f&response_mode=form_post&response_type=code+id_token&scope=user_impersonation+openid&state=OpenIdConnect.AuthenticationProperties%3dKacUNidcHXlixnHEGpOm3zw3NCnurAxht3Y2rZa3Bg-LzJg6eC0mvtU3gTxOY4MzmZSX3nKUDRyk8LT6L86JUJfp038_1tlBTF-J0cL_yeo_ZOk0cgTfVKvxrL66-laSnHw4R_YXA0VaGe1HmHvvJ5blPCYwoY7xuoZWmn3bMTgMVOc4nxH-50KaxHyNFuypnUcDE-VIdKrS2niFDWDLaSPIbMM&nonce=636565268366247669.NTg2YWFmYjQtZTM2YS00NjcxLWIwNjAtNTUwMDRhNzU2NWNhYjUxZjBlNjEtN2RjYy00ODkyLWJlMzEtNWIxYTMyZjg0Njcy&client_id=c44b4083-3bb0-49c1-b47d-974e53cbdf3c&redirect_uri=https%3a%2f%2fportal.azure.com%2fsignin%2findex%2f&site_id=501430&client-request-id=c2349dd4-89d5-4c01-aa99-c91cb4d44c75&x-client-SKU=ID_NET&x-client-ver=1.0.40306.1554) with your existing office365 credentials and able to see the Dashboard of the Microsoft Azure.
 
-       ![alt text](images/office1.png)
-       * Create new application by specify the following properties and specify **WEB APPLICATION AND/OR WEB API** for **Application Type**.
-            1. **Name** : Name of the application.
-            2. **Sign-on URL** :  https://localhost:9443/commonauth
+    b. Alternatively, you will need to create a new Azure subscription and associate it with your Office 365 account in order to register and manage apps.
+       * Sign up at [Azure.com](https://account.azure.com/signup?offer=MS-AZR-0044p&appId=docs).
+       * Sign in by using your Office 365 username and password. The account you use doesn't need to have administrator permissions.
+       * Enter the required information and complete the sign-up process. Here, you may need to enter the payment information, Your credit card will not be charged as it is a free trial 30-day Azure subscription.
 
-       ![alt text](images/office4.png)
+       ![alt text](images/office13.png)
+       * Now, You have created new Azure subscription and able to see the Dashboard of the Microsoft Azure.
 
-       * Once the application has been successfully added, you will be taken to the registered app page for the application. From here, click **Settings** in the top menu. Here copy the **Application ID**, Which will be consider as **client id** of this app.
+ 3. Register a new application in the Azure classic portal.
+    * Select the  **Azure Active Directory** from left panel, then select the **App Registrations** tab and at the top of the screen, select **New Application Registration**.
 
-       ![alt text](images/office5.png)
+        ![alt text](images/office1.png)
+    * Create new application by specify the following properties and specify **WEB APPLICATION AND/OR WEB API** for **Application Type**.
+        1. **Name** : Name of the application.
+        2. **Sign-on URL** :  https://localhost:9443/commonauth
 
-       * Click on keys under **API ACCESS** and you can generate client secret as shown in the following UI. Once you save the keys you will see the value of client secret.
+        ![alt text](images/office4.png)
 
-       ![alt text](images/office6.png)
+    * Once the application has been successfully added, you will be taken to the registered app page for the application. From here, click **Settings** in the top menu. Here copy the **Application ID**, Which will be consider as **client id** of this app.
 
-       * Click on **Required Permissions** under **API ACCESS** and click on **Add** and then click on **Select an API** and then select **Office 365 Exchange Online**.
+        ![alt text](images/office5.png)
 
-       ![alt text](images/office7.png)
+    * Click on keys under **API ACCESS** and you can generate client secret as shown in the following UI. Once you save the keys you will see the value of client secret.
 
-       * Once you select and add an API, **Select permissions** and then select the check box of **Delegated Permissions** to give the permission for **Office 365 Exchange Online**.
+        ![alt text](images/office6.png)
 
-       ![alt text](images/office8.png)
+    * Click on **Required Permissions** under **API ACCESS** and click on **Add** and then click on **Select an API** and then select **Office 365 Exchange Online**.
 
-       * Click **Done** in the bottom menu.
+        ![alt text](images/office7.png)
 
-    You have now configured the office365 app.
+    * Once you select and add an API, **Select permissions** and then select the check box of **Delegated Permissions** to give the permission for **Office 365 Exchange Online**.
+
+        ![alt text](images/office8.png)
+
+    * Click **Done** in the bottom menu.
+
+ You have now configured the office365 app.
 
 ### Deploying [travelocity.com](https://www.travelocity.com/) Sample App
     
