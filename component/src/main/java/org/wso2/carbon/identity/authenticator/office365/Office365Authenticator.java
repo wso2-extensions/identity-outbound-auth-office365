@@ -35,6 +35,7 @@ import org.wso2.carbon.identity.application.authentication.framework.Authenticat
 import org.wso2.carbon.identity.application.authentication.framework.FederatedApplicationAuthenticator;
 import org.wso2.carbon.identity.application.authentication.framework.context.AuthenticationContext;
 import org.wso2.carbon.identity.application.authentication.framework.exception.AuthenticationFailedException;
+import org.wso2.carbon.identity.application.authentication.framework.exception.InvalidCredentialsException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
 import org.wso2.carbon.identity.application.authenticator.oidc.OIDCAuthenticatorConstants;
@@ -152,7 +153,7 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
      */
     @Override
     public String getContextIdentifier(HttpServletRequest request) {
-        return request.getParameter(Office365AuthenticatorConstants.STATE);
+        return request.getParameter(OIDCAuthenticatorConstants.OAUTH2_PARAM_STATE);
     }
 
     /**
@@ -165,8 +166,9 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
                 request.getParameter(OIDCAuthenticatorConstants.OAUTH2_PARAM_STATE) != null &&
                 Office365AuthenticatorConstants.AUTHENTICATOR_FRIENDLY_NAME.equals(getLoginType(request))) {
             return true;
+        } else if (request.getParameter(Office365AuthenticatorConstants.OAUTH2_PARAM_ERROR) != null) {
+            return true;
         }
-
         return false;
     }
 
@@ -176,6 +178,30 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
             return state.split(",")[1];
         } else {
             return null;
+        }
+    }
+
+    /**
+     * Handle error response when unauthorized the registered app.
+     *
+     * @param request httpServletRequest
+     * @throws InvalidCredentialsException
+     */
+    private void handleErrorResponse(HttpServletRequest request) throws InvalidCredentialsException {
+        if (request.getParameter(Office365AuthenticatorConstants.OAUTH2_PARAM_ERROR) != null) {
+            StringBuilder errorMessage = new StringBuilder();
+            String error = request.getParameter(Office365AuthenticatorConstants.OAUTH2_PARAM_ERROR);
+            String errorDescription = request.getParameter
+                    (Office365AuthenticatorConstants.OAUTH2_PARAM_ERROR_DESCRIPTION);
+            String state = request.getParameter(Office365AuthenticatorConstants.STATE);
+            errorMessage.append(Office365AuthenticatorConstants.ERROR).append(error)
+                    .append(Office365AuthenticatorConstants.ERROR_DESCRIPTION).append(errorDescription)
+                    .append(OIDCAuthenticatorConstants.OAUTH2_PARAM_STATE).append(state);
+            if (log.isDebugEnabled()) {
+                log.debug("Failed to authenticate via office365 when unauthorized the registered app. " +
+                        errorMessage.toString());
+            }
+            throw new InvalidCredentialsException(errorMessage.toString());
         }
     }
 
@@ -190,7 +216,8 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
         if (context.isLogoutRequest()) {
             return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
         }
-        if (StringUtils.isNotEmpty(request.getParameter(Office365AuthenticatorConstants.CODE))) {
+        if (StringUtils.isNotEmpty(request.getParameter(Office365AuthenticatorConstants.CODE)) || StringUtils
+                .isNotEmpty(request.getParameter(Office365AuthenticatorConstants.OAUTH2_PARAM_ERROR))) {
             processAuthenticationResponse(request, response, context);
             return AuthenticatorFlowStatus.SUCCESS_COMPLETED;
         } else {
@@ -210,7 +237,7 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
         String clientId = authenticatorProperties.get(OIDCAuthenticatorConstants.CLIENT_ID);
         String redirectUri = authenticatorProperties.get(Office365AuthenticatorConstants.CALLBACK_URL);
         String loginPage = getAuthorizationServerEndpoint(context.getAuthenticatorProperties());
-        String queryParams = Office365AuthenticatorConstants.STATE + "=" + context.getContextIdentifier()
+        String queryParams = OIDCAuthenticatorConstants.OAUTH2_PARAM_STATE + "=" + context.getContextIdentifier()
                 + "," + Office365AuthenticatorConstants.AUTHENTICATOR_FRIENDLY_NAME;
         try {
             response.sendRedirect(response.encodeRedirectURL(loginPage + "?" + queryParams + "&" +
@@ -231,6 +258,7 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
     protected void processAuthenticationResponse(HttpServletRequest request, HttpServletResponse response,
                                                  AuthenticationContext context) throws AuthenticationFailedException {
         try {
+            handleErrorResponse(request);
             Map<String, String> authenticatorProperties = context.getAuthenticatorProperties();
             String clientId = authenticatorProperties.get(OIDCAuthenticatorConstants.CLIENT_ID);
             String clientSecret = authenticatorProperties.get(OIDCAuthenticatorConstants.CLIENT_SECRET);

@@ -53,6 +53,9 @@ public class Office365AuthenticatorConstants {
     public static final String Authorization = "Authorization";
     //The Bearer type
     public static final String BEARER = "Bearer ";
-    //A randomly generated non-reused value that is sent in the request and returned in the response.
-    public static final String STATE = "state";
+    public static final String OAUTH2_PARAM_ERROR = "error";
+    public static final String OAUTH2_PARAM_ERROR_DESCRIPTION = "error_description";
+    public static final String ERROR = "error: ";
+    public static final String ERROR_DESCRIPTION = ", error_description: ";
+    public static final String STATE = ", state: ";
 }
