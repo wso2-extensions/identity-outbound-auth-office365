@@ -193,10 +193,10 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
             String error = request.getParameter(Office365AuthenticatorConstants.OAUTH2_PARAM_ERROR);
             String errorDescription = request.getParameter
                     (Office365AuthenticatorConstants.OAUTH2_PARAM_ERROR_DESCRIPTION);
-            String state = request.getParameter(Office365AuthenticatorConstants.STATE);
+            String state = request.getParameter(OIDCAuthenticatorConstants.OAUTH2_PARAM_STATE);
             errorMessage.append(Office365AuthenticatorConstants.ERROR).append(error)
                     .append(Office365AuthenticatorConstants.ERROR_DESCRIPTION).append(errorDescription)
-                    .append(OIDCAuthenticatorConstants.OAUTH2_PARAM_STATE).append(state);
+                    .append(Office365AuthenticatorConstants.STATE).append(state);
             if (log.isDebugEnabled()) {
                 log.debug("Failed to authenticate via office365 when unauthorized the registered app. " +
                         errorMessage.toString());
