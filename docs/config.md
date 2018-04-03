@@ -13,8 +13,8 @@ NOTE: The Microsoft Azure Active Directory Authenticator is tested with Office36
 * [Testing the sample](#testing-the-sample)
 
 ### Deploying office 365 artifacts
- * Download the org.wso2.carbon.extension.identity.authenticator.office365.connector-1.0.3.jar file from the [WSO2 store](https://store.wso2.com/store/assets/isconnector/list?q=%22_default%22%3A%22office365%22).
- * Add the org.wso2.carbon.extension.identity.authenticator.office365.connector-1.0.3.jar file to the <IS_HOME>/repository/components/dropins directory.
+ * Download the org.wso2.carbon.extension.identity.authenticator.office365.connector-1.0.4.jar file from the [WSO2 store](https://store.wso2.com/store/assets/isconnector/details/1b853fe7-bbaf-4ca0-be9e-bb1f5f664eb4).
+ * Add the org.wso2.carbon.extension.identity.authenticator.office365.connector-1.0.4.jar file to the <IS_HOME>/repository/components/dropins directory.
 
  >> NOTE :If you want to upgrade the Microsoft Azure AD Authenticator available with your existing WSO2 Identity Server product distribution, follow the provided [upgrade instructions](https://docs.wso2.com/display/ISCONNECTORS/Upgrading+an+Authenticator).
 
