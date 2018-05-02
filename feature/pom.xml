@@ -19,10 +19,10 @@
     <parent>
         <groupId>org.wso2.carbon.extension.identity.authenticator</groupId>
         <artifactId>org.wso2.carbon.extension.identity.authenticator.office365</artifactId>
-        <version>1.0.5-SNAPSHOT</version>
+        <version>1.0.4-SNAPSHOT</version>
     </parent>
     <artifactId>org.wso2.carbon.extension.identity.authenticator.office365.feature</artifactId>
-    <version>1.0.5-SNAPSHOT</version>
+    <version>1.0.4-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>WSO2 Carbon - identity Office365 Feature</name>
     <url>http://wso2.org</url>
