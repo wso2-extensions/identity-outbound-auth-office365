@@ -16,17 +16,18 @@ NOTE: The Microsoft Azure Active Directory Authenticator is tested with Office36
  * Download the org.wso2.carbon.extension.identity.authenticator.office365.connector-1.0.4.jar file from the [WSO2 store](https://store.wso2.com/store/assets/isconnector/details/1b853fe7-bbaf-4ca0-be9e-bb1f5f664eb4).
  * Add the org.wso2.carbon.extension.identity.authenticator.office365.connector-1.0.4.jar file to the <IS_HOME>/repository/components/dropins directory.
     
- >> If you are using WSO2 Identity Server version 5.5.0 , you must turn off consent in the 
-    <IS_HOME>/repository/conf/identity/identity.xml, Otherwise you will end up with the error message.
+ >> NOTE: If you are using WSO2 Identity Server 5.5.0, be sure to disable consent management for single-sign-on (SSO) authentication.
+    To disable consent management for SSO authentication, go to  the `<IS_HOME>/repository/conf/identity/identity.xml` file, and set the    `EnableSSOConsentManagement` parameter to `false`.
         
  ````xml   
     <Consent>
-        <!--Specify whether consent management should be enable during SSO.-->
+        <!--Specify whether consent management should be enabled for SSO authentication -->
         <EnableSSOConsentManagement>false</EnableSSOConsentManagement>
     </Consent>
  ````
+ >> If you do not disable consent management for SSO authentication, you will get an error when you try to configure the authenticator with WSO2 Identity Server 5.5.0. 
  
- >> NOTE :If you want to upgrade the Microsoft Azure AD Authenticator available with your existing WSO2 Identity Server product distribution, follow the provided [upgrade instructions](https://docs.wso2.com/display/ISCONNECTORS/Upgrading+an+Authenticator).
+ >> NOTE: If you want to upgrade the Microsoft Azure AD Authenticator available in your existing WSO2 Identity Server product distribution, follow the [upgrade instructions](https://docs.wso2.com/display/ISCONNECTORS/Upgrading+an+Authenticator).
 
 ### Configuring the Office 365 app
  1. Go to [https://products.office.com/en-us/business/compare-office-365-for-business-plans](https://products.office.com/en-us/business/compare-office-365-for-business-plans), and create an Office365 account.
