@@ -96,6 +96,13 @@ public class Office365AuthenticatorTest {
         Assert.assertEquals(true, spy.canHandle(httpServletRequest));
     }
 
+    @Test(description = "Test case for getLoginType method.")
+    public void testGetLoginType() {
+        Mockito.when(httpServletRequest.getParameter(OIDCAuthenticatorConstants.OAUTH2_PARAM_STATE))
+                .thenReturn("test-state,login-type");
+        Assert.assertEquals(office365Authenticator.getLoginType(httpServletRequest), "login-type");
+    }
+
     @Test(description = "Test case for process() method for logout request.")
     public void testProcessForLogoutRequest() throws AuthenticationFailedException, LogoutFailedException {
         Mockito.when(context.isLogoutRequest()).thenReturn(true);
@@ -138,13 +145,16 @@ public class Office365AuthenticatorTest {
         spyAuthenticator.processAuthenticationResponse(httpServletRequest, httpServletResponse, context);
     }
 
-    @Test(description = "test process authentication response method")
+    @Test(description = "test getAccessRequest method")
     public void testGetAccessRequest() throws Exception {
         PowerMockito.mockStatic(OAuthClientRequest.class);
         Mockito.when(OAuthClientRequest.tokenLocation(Mockito.anyString()))
-                .thenReturn(Mockito.any(OAuthClientRequest.TokenRequestBuilder.class));
-        Whitebox.invokeMethod(office365Authenticator, "getAccessRequest",
-                "/token", "dummy-clientId", "dummy-code", "dummy-secret","/callback");
+                .thenReturn(new OAuthClientRequest.TokenRequestBuilder("/token"));
+        OAuthClientRequest getAccessRequest = Whitebox
+                .invokeMethod(office365Authenticator, "getAccessRequest", "/token", "dummy-clientId", "dummy-code",
+                        "dummy-secret", "/callback");
+        Assert.assertNotNull(getAccessRequest);
+        Assert.assertEquals(getAccessRequest.getLocationUri(), "/token");
     }
 
 }
