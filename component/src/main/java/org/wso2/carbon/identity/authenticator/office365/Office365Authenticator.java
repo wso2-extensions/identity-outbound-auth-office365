@@ -172,6 +172,15 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
         return false;
     }
 
+    /**
+     * Return the claim dialect URI.
+     */
+    @Override
+    public String getClaimDialectURI() {
+
+        return null;
+    }
+
     protected String getLoginType(HttpServletRequest request) {
         String state = request.getParameter(OIDCAuthenticatorConstants.OAUTH2_PARAM_STATE);
         if (state != null) {
