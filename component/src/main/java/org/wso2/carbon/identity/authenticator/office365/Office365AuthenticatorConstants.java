@@ -58,4 +58,8 @@ public class Office365AuthenticatorConstants {
     public static final String ERROR = "error: ";
     public static final String ERROR_DESCRIPTION = ", error_description: ";
     public static final String STATE = ", state: ";
+    //A randomly generated non-reused value that is sent in the request and returned in the response.
+//    public static final String STATE = "state";
+    //Additional Query Parameters that need to be sent to IDP
+    public static final String ADDITIONAL_QUERY_PARAMS = "AdditionalQueryParameters";
 }

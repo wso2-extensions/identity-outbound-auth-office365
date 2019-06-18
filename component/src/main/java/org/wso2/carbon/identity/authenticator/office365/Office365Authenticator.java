@@ -51,9 +51,11 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -62,6 +64,8 @@ import java.util.Map;
  */
 public class Office365Authenticator extends OpenIDConnectAuthenticator implements FederatedApplicationAuthenticator {
 
+    private static final String EQUAL = "=";
+    private static final String QUERY_PARAM_SEPARATOR = "&";
     private static Log log = LogFactory.getLog(Office365Authenticator.class);
 
     /**
@@ -144,6 +148,14 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
         redirectUri.setDescription("Enter value corresponding to callback url.");
         redirectUri.setDisplayOrder(2);
         configProperties.add(redirectUri);
+
+        Property requestedQueryParam = new Property();
+        requestedQueryParam.setDisplayName("Additional Query Parameters");
+        requestedQueryParam.setName(Office365AuthenticatorConstants.ADDITIONAL_QUERY_PARAMS);
+        requestedQueryParam.setValue("username={username}&login_hint={username}");
+        requestedQueryParam.setDescription("Additional query parameters. e.g: login_hint=email@example.com");
+        requestedQueryParam.setDisplayOrder(3);
+        configProperties.add(requestedQueryParam);
 
         return configProperties;
     }
@@ -246,15 +258,24 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
         String clientId = authenticatorProperties.get(OIDCAuthenticatorConstants.CLIENT_ID);
         String redirectUri = authenticatorProperties.get(Office365AuthenticatorConstants.CALLBACK_URL);
         String loginPage = getAuthorizationServerEndpoint(context.getAuthenticatorProperties());
-        String queryParams = OIDCAuthenticatorConstants.OAUTH2_PARAM_STATE + "=" + context.getContextIdentifier()
+        String identifierParam = OIDCAuthenticatorConstants.OAUTH2_PARAM_STATE + EQUAL+ context.getContextIdentifier()
                 + "," + Office365AuthenticatorConstants.AUTHENTICATOR_FRIENDLY_NAME;
+        String queryParams = resolveDynamicParameter(context);
+        //resolves dynamic query parameters from "Additional Query Parameters"
+
+        if (StringUtils.isNotEmpty(queryParams)) {
+            queryParams = queryParams + QUERY_PARAM_SEPARATOR + identifierParam;
+        } else {
+            queryParams = identifierParam;
+        }
+
         try {
-            response.sendRedirect(response.encodeRedirectURL(loginPage + "?" + queryParams + "&" +
-                    Office365AuthenticatorConstants.CLIENT_ID + "=" + clientId + "&" +
-                    Office365AuthenticatorConstants.RESPONSE_TYPE + "=" +
-                    OIDCAuthenticatorConstants.OAUTH2_GRANT_TYPE_CODE + "&" +
-                    Office365AuthenticatorConstants.REDIRECT_URI + "=" + redirectUri + "&" +
-                    Office365AuthenticatorConstants.Resource + "=" + Office365AuthenticatorConstants.OFFICE365_RESOURCE));
+            response.sendRedirect(response.encodeRedirectURL(loginPage + "?" + queryParams + QUERY_PARAM_SEPARATOR +
+                    Office365AuthenticatorConstants.CLIENT_ID + EQUAL + clientId + QUERY_PARAM_SEPARATOR +
+                    Office365AuthenticatorConstants.RESPONSE_TYPE + EQUAL +
+                    OIDCAuthenticatorConstants.OAUTH2_GRANT_TYPE_CODE + QUERY_PARAM_SEPARATOR +
+                    Office365AuthenticatorConstants.REDIRECT_URI + EQUAL + redirectUri + QUERY_PARAM_SEPARATOR +
+                    Office365AuthenticatorConstants.Resource + EQUAL + Office365AuthenticatorConstants.OFFICE365_RESOURCE));
         } catch (IOException e) {
             throw new AuthenticationFailedException("Error while redirecting", e);
         }
@@ -386,6 +407,68 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
             log.debug("response: " + builder.toString());
         }
         return builder.toString();
+    }
+
+
+    /**
+     * Resolves dynamic query parameters from "Additional Query Parameters" string.
+     *
+     * @param context authentication context
+     * @throws UnsupportedEncodingException if the character encoding is unsupported
+     */
+    private String resolveDynamicParameter(AuthenticationContext context) {
+
+        String queryParameters = context.getAuthenticatorProperties().get(Office365AuthenticatorConstants.ADDITIONAL_QUERY_PARAMS);
+        if (queryParameters != null) {
+            String resolvedQueryParams = getResolvedQueryParams(context, queryParameters);
+            context.getAuthenticatorProperties()
+                    .put(Office365AuthenticatorConstants.ADDITIONAL_QUERY_PARAMS, resolvedQueryParams);
+            return resolvedQueryParams;
+        }
+        return StringUtils.EMPTY;
+    }
+
+    /**
+     * Checks for any dynamic query parameters and replaces it with the values in the SAML request.
+     *
+     * @param context          authentication context
+     * @param queryParamString query parameters string
+     * @return resolved query parameter string
+     * @throws UnsupportedEncodingException if the character encoding is unsupported
+     */
+    private String getResolvedQueryParams(AuthenticationContext context, String queryParamString) {
+
+        Map<String, String> queryMap = getQueryMap(queryParamString);
+        StringBuilder queryBuilder = new StringBuilder();
+        for (Map.Entry<String, String> entry : queryMap.entrySet()) {
+            if (entry.getValue().startsWith("{") && entry.getValue().endsWith("}") && entry.getValue().length() > 2) {
+                String[] dynamicParam = context.getAuthenticationRequest()
+                        .getRequestQueryParam(entry.getValue().substring(1, entry.getValue().length() - 1));
+                if (dynamicParam != null && dynamicParam.length > 0) {
+                    entry.setValue(dynamicParam[0]);
+                }
+            }
+            if (queryBuilder.length() > 0) {
+                queryBuilder.append('&');
+            }
+            queryBuilder.append(entry.getKey()).append(EQUAL).append(entry.getValue());
+        }
+        return queryBuilder.toString();
+    }
+
+    private Map<String, String> getQueryMap(String query) {
+        String[] params = query.split(QUERY_PARAM_SEPARATOR);
+        Map<String, String> map = new HashMap<String, String>();
+        for (String param : params) {
+            String[] paramSplitArr = param.split(EQUAL);
+            String name = paramSplitArr[0];
+            String value = "";
+            if (paramSplitArr.length > 1) {
+                value = paramSplitArr[1];
+            }
+            map.put(name, value);
+        }
+        return map;
     }
 }
 
