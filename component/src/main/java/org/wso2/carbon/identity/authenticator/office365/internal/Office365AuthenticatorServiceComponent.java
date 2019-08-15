@@ -32,7 +32,7 @@ import java.util.Hashtable;
  */
 public class Office365AuthenticatorServiceComponent {
 
-    private static Log log = LogFactory.getLog(Office365AuthenticatorServiceComponent.class);
+    private static final Log log = LogFactory.getLog(Office365AuthenticatorServiceComponent.class);
 
     protected void activate(ComponentContext ctxt) {
         try {

@@ -66,7 +66,7 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
 
     private static final String EQUAL = "=";
     private static final String QUERY_PARAM_SEPARATOR = "&";
-    private static Log log = LogFactory.getLog(Office365Authenticator.class);
+    private static final Log log = LogFactory.getLog(Office365Authenticator.class);
 
     /**
      * Get Outlook authorization endpoint.
