@@ -27,14 +27,14 @@ public class Office365AuthenticatorConstants {
     //office365 token  endpoint URL
     public static final String office365_TOKEN_ENDPOINT = "https://login.microsoftonline.com/common/oauth2/token";
     //office365 user info endpoint URL
-    public static final String office365_USERINFO_ENDPOINT = "https://outlook.office365.com/api/v2.0/me";
+    public static final String office365_USERINFO_ENDPOINT = "https://graph.microsoft.com/v1.0/me";
     public static final String Resource = "resource";
     // The client ID of the client application that is registered in Azure AD.
     public static final String CLIENT_ID = "client_id";
     //The reply URL of the application.
     public static final String CALLBACK_URL = "callbackUrl";
     //The ID of the user
-    public static final String ID = "Id";
+    public static final String ID = "id";
     //The authorization code that the application requested.
     public static final String CODE = "code";
     //The response type
@@ -42,7 +42,7 @@ public class Office365AuthenticatorConstants {
     //Specifies the reply URL of the application.
     public static final String REDIRECT_URI = "redirect_uri";
     //The App ID URI of the web API
-    public static final String OFFICE365_RESOURCE = "https://outlook.office.com";
+    public static final String OFFICE365_RESOURCE = "https://graph.microsoft.com";
     //The Http get method
     public static final String HTTP_GET = "GET";
     //The Accept header
