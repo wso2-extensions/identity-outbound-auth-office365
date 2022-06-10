@@ -419,7 +419,7 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
     private String resolveDynamicParameter(AuthenticationContext context) {
 
         String queryParameters = context.getAuthenticatorProperties().get(Office365AuthenticatorConstants.ADDITIONAL_QUERY_PARAMS);
-        if (queryParameters != null) {
+        if (StringUtils.isNotBlank(queryParameters)) {
             String resolvedQueryParams = getResolvedQueryParams(context, queryParameters);
             context.getAuthenticatorProperties()
                     .put(Office365AuthenticatorConstants.ADDITIONAL_QUERY_PARAMS, resolvedQueryParams);
@@ -445,13 +445,12 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
                 String[] dynamicParam = context.getAuthenticationRequest()
                         .getRequestQueryParam(entry.getValue().substring(1, entry.getValue().length() - 1));
                 if (dynamicParam != null && dynamicParam.length > 0) {
-                    entry.setValue(dynamicParam[0]);
+                    if (queryBuilder.length() > 0) {
+                        queryBuilder.append('&');
+                    }
+                    queryBuilder.append(entry.getKey()).append(EQUAL).append(dynamicParam[0]);
                 }
             }
-            if (queryBuilder.length() > 0) {
-                queryBuilder.append('&');
-            }
-            queryBuilder.append(entry.getKey()).append(EQUAL).append(entry.getValue());
         }
         return queryBuilder.toString();
     }
