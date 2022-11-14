@@ -140,7 +140,7 @@
         <developerConnection>
             scm:git:https://github.com/wso2-extensions/identity-outbound-auth-office365.git
         </developerConnection>
-        <tag>v2.1.1</tag>
+        <tag>HEAD</tag>
     </scm>
     <build>
         <extensions>
