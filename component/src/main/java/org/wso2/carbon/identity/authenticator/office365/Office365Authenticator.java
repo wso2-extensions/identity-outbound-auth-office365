@@ -330,7 +330,7 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
      * @return Response OAuthClientResponse.
      * @throws AuthenticationFailedException
      */
-    private OAuthClientResponse getOauthResponse(OAuthClient oAuthClient, OAuthClientRequest accessRequest)
+    protected OAuthClientResponse getOauthResponse(OAuthClient oAuthClient, OAuthClientRequest accessRequest)
             throws AuthenticationFailedException {
         OAuthClientResponse oAuthResponse;
         try {
