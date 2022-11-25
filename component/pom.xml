@@ -59,6 +59,7 @@
                         <Import-Package>
                             org.apache.commons.logging.*; version="1.0.4",
                             org.osgi.framework,
+                            org.osgi.service.component; version="${osgi.service.import.version.range}",
                             org.wso2.carbon.identity.application.authentication.framework.*,
                             javax.servlet,
                             javax.servlet.http,
