@@ -1,0 +1,12 @@
+{
+    "name": "Office365",
+    "owner": "WSO2",
+    "category": "Federated authenticator",
+    "documentationUrl": "https://github.com/wso2-extensions/identity-outbound-auth-office365/blob/v1.0.4/docs",
+    "description": "The Office365 authenticator allows you to authenticate users using office365 through the WSO2 Identity Server. Office 365 refers to subscription plans that include access to Office applications plus other productivity services that are enabled over the Internet (cloud services).",
+    "status": "Active",
+    "labels": [
+        "SocialLogin"
+    ],
+    "releases": []
+}
