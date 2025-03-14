@@ -38,6 +38,7 @@ import org.wso2.carbon.identity.application.authentication.framework.exception.A
 import org.wso2.carbon.identity.application.authentication.framework.exception.InvalidCredentialsException;
 import org.wso2.carbon.identity.application.authentication.framework.exception.LogoutFailedException;
 import org.wso2.carbon.identity.application.authentication.framework.model.AuthenticatedUser;
+import org.wso2.carbon.identity.application.authentication.framework.util.FrameworkConstants;
 import org.wso2.carbon.identity.application.authenticator.oidc.OIDCAuthenticatorConstants;
 import org.wso2.carbon.identity.application.authenticator.oidc.OpenIDConnectAuthenticator;
 import org.wso2.carbon.identity.application.common.model.ClaimMapping;
@@ -54,10 +55,14 @@ import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Authenticator of Outlook
@@ -66,7 +71,11 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
 
     private static final String EQUAL = "=";
     private static final String QUERY_PARAM_SEPARATOR = "&";
+    private static final String MULTI_OPTION_URI = "multiOptionURI";
     private static final Log log = LogFactory.getLog(Office365Authenticator.class);
+
+    private static final String DYNAMIC_PARAMETER_LOOKUP_REGEX = "\\$\\{(\\w+)\\}";
+    private static Pattern pattern = Pattern.compile(DYNAMIC_PARAMETER_LOOKUP_REGEX);
 
     /**
      * Get Outlook authorization endpoint.
@@ -254,13 +263,17 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
     protected void initiateAuthenticationRequest(HttpServletRequest request,
                                                  HttpServletResponse response, AuthenticationContext context)
             throws AuthenticationFailedException {
+
         Map<String, String> authenticatorProperties = context.getAuthenticatorProperties();
         String clientId = authenticatorProperties.get(OIDCAuthenticatorConstants.CLIENT_ID);
         String redirectUri = authenticatorProperties.get(Office365AuthenticatorConstants.CALLBACK_URL);
+        if (StringUtils.isBlank(redirectUri)) {
+            redirectUri = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true);
+        }
         String loginPage = getAuthorizationServerEndpoint(context.getAuthenticatorProperties());
-        String identifierParam = OIDCAuthenticatorConstants.OAUTH2_PARAM_STATE + EQUAL+ context.getContextIdentifier()
+        String identifierParam = OIDCAuthenticatorConstants.OAUTH2_PARAM_STATE + EQUAL + context.getContextIdentifier()
                 + "," + Office365AuthenticatorConstants.AUTHENTICATOR_FRIENDLY_NAME;
-        String queryParams = resolveDynamicParameter(context);
+        String queryParams = resolveDynamicParameter(context, request.getParameterMap());
         //resolves dynamic query parameters from "Additional Query Parameters"
 
         if (StringUtils.isNotEmpty(queryParams)) {
@@ -275,7 +288,8 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
                     Office365AuthenticatorConstants.RESPONSE_TYPE + EQUAL +
                     OIDCAuthenticatorConstants.OAUTH2_GRANT_TYPE_CODE + QUERY_PARAM_SEPARATOR +
                     Office365AuthenticatorConstants.REDIRECT_URI + EQUAL + redirectUri + QUERY_PARAM_SEPARATOR +
-                    Office365AuthenticatorConstants.Resource + EQUAL + Office365AuthenticatorConstants.OFFICE365_RESOURCE));
+                    Office365AuthenticatorConstants.Resource + EQUAL +
+                    Office365AuthenticatorConstants.OFFICE365_RESOURCE));
         } catch (IOException e) {
             throw new AuthenticationFailedException("Error while redirecting", e);
         }
@@ -413,14 +427,18 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
     /**
      * Resolves dynamic query parameters from "Additional Query Parameters" string.
      *
-     * @param context authentication context
-     * @throws UnsupportedEncodingException if the character encoding is unsupported
+     * @param context      authentication context
+     * @param parameterMap request parameter map
+     * @return resolved query parameters
+     * @throws AuthenticationFailedException if an error occurs while resolving dynamic parameters
      */
-    private String resolveDynamicParameter(AuthenticationContext context) {
+    private String resolveDynamicParameter(AuthenticationContext context, Map<String, String[]> parameterMap)
+            throws AuthenticationFailedException {
 
-        String queryParameters = context.getAuthenticatorProperties().get(Office365AuthenticatorConstants.ADDITIONAL_QUERY_PARAMS);
+        String queryParameters =
+                context.getAuthenticatorProperties().get(Office365AuthenticatorConstants.ADDITIONAL_QUERY_PARAMS);
         if (StringUtils.isNotBlank(queryParameters)) {
-            String resolvedQueryParams = getResolvedQueryParams(context, queryParameters);
+            String resolvedQueryParams = getResolvedQueryParams(queryParameters, parameterMap);
             context.getAuthenticatorProperties()
                     .put(Office365AuthenticatorConstants.ADDITIONAL_QUERY_PARAMS, resolvedQueryParams);
             return resolvedQueryParams;
@@ -429,45 +447,83 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
     }
 
     /**
-     * Checks for any dynamic query parameters and replaces it with the values in the SAML request.
+     * Checks for any dynamic query parameters and replaces it with the values in the request.
      *
-     * @param context          authentication context
-     * @param queryParamString query parameters string
-     * @return resolved query parameter string
-     * @throws UnsupportedEncodingException if the character encoding is unsupported
+     * @param queryParamString The query parameter string.
+     * @param parameters       The parameter map of the request.
+     * @return The query parameter string with the dynamic parameters replaced with the actual values.
+     * @throws AuthenticationFailedException if an error occurs while resolving dynamic parameters.
      */
-    private String getResolvedQueryParams(AuthenticationContext context, String queryParamString) {
+    private String getResolvedQueryParams(String queryParamString, Map<String, String[]> parameters)
+            throws AuthenticationFailedException {
 
-        Map<String, String> queryMap = getQueryMap(queryParamString);
-        StringBuilder queryBuilder = new StringBuilder();
-        for (Map.Entry<String, String> entry : queryMap.entrySet()) {
-            if (entry.getValue().startsWith("{") && entry.getValue().endsWith("}") && entry.getValue().length() > 2) {
-                String[] dynamicParam = context.getAuthenticationRequest()
-                        .getRequestQueryParam(entry.getValue().substring(1, entry.getValue().length() - 1));
-                if (dynamicParam != null && dynamicParam.length > 0) {
-                    if (queryBuilder.length() > 0) {
-                        queryBuilder.append('&');
+        if (StringUtils.isBlank(queryParamString)) {
+            return StringUtils.EMPTY;
+        }
+        Matcher matcher = pattern.matcher(queryParamString);
+        while (matcher.find()) {
+            String name = matcher.group(1);
+            String value = getParameterFromParamMap(parameters, name);
+            if (StringUtils.isBlank(value)) {
+                String multiOptionURI = getParameterFromParamMap(parameters, MULTI_OPTION_URI);
+                value = getParameterFromURIString(multiOptionURI, name);
+            }
+            if (log.isDebugEnabled()) {
+                log.debug("InterpretQueryString name: " + name + ", value: " + value);
+            }
+            queryParamString = queryParamString.replaceAll("\\$\\{" + name + "}", Matcher.quoteReplacement(value));
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("Output QueryString: " + queryParamString);
+        }
+        return queryParamString;
+    }
+
+    /**
+     * Gets the value of the parameter corresponding to the given parameter
+     * name from the request's parameter map.
+     *
+     * @param parameters    The parameter map of the request.
+     * @param parameterName The name of the parameter to be retrieved.
+     * @return The value of the parameter if it is present in the parameter map.
+     * If it is not present, an empty String is returned instead.
+     */
+    private String getParameterFromParamMap(Map<String, String[]> parameters, String parameterName) {
+
+        String[] parameterValueMap = parameters.get(parameterName);
+        if (parameterValueMap != null && parameterValueMap.length > 0) {
+            return parameterValueMap[0];
+        }
+        return StringUtils.EMPTY;
+    }
+
+    /**
+     * Parses the given URI String to get the parameter value corresponding to the
+     * given parameter name.
+     *
+     * @param uriString     The URI String to be parsed.
+     * @param parameterName The name of the parameter to be retrieved.
+     * @return The value of the parameter if it is present in the URI String.
+     * @throws AuthenticationFailedException if an error occurs while decoding the parameter value.
+     * If it is not present, an empty String is returned instead.
+     */
+    private String getParameterFromURIString(String uriString, String parameterName)
+            throws AuthenticationFailedException {
+
+        if (StringUtils.isNotBlank(uriString)) {
+            String[] queryParams = uriString.split(QUERY_PARAM_SEPARATOR, -1);
+            for (String queryParam : queryParams) {
+                String[] queryParamComponents = queryParam.split(EQUAL);
+                if (queryParamComponents.length == 2 && queryParamComponents[0].equalsIgnoreCase(parameterName)) {
+                    try {
+                        return URLDecoder.decode(queryParamComponents[1], StandardCharsets.UTF_8.name());
+                    } catch (UnsupportedEncodingException e) {
+                        throw new AuthenticationFailedException("Error decoding parameter: " + e.getMessage());
                     }
-                    queryBuilder.append(entry.getKey()).append(EQUAL).append(dynamicParam[0]);
                 }
             }
         }
-        return queryBuilder.toString();
-    }
-
-    private Map<String, String> getQueryMap(String query) {
-        String[] params = query.split(QUERY_PARAM_SEPARATOR);
-        Map<String, String> map = new HashMap<String, String>();
-        for (String param : params) {
-            String[] paramSplitArr = param.split(EQUAL);
-            String name = paramSplitArr[0];
-            String value = "";
-            if (paramSplitArr.length > 1) {
-                value = paramSplitArr[1];
-            }
-            map.put(name, value);
-        }
-        return map;
+        return StringUtils.EMPTY;
     }
 }
 

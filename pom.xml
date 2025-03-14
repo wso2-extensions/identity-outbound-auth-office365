@@ -132,6 +132,12 @@
             <artifactId>json</artifactId>
             <version>${wso2.json}</version>
         </dependency>
+        <dependency>
+            <groupId>org.wso2.carbon.identity.framework</groupId>
+            <artifactId>org.wso2.carbon.identity.application.authentication.framework</artifactId>
+            <version>${carbon.identity.framework.version}</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
     <scm>
         <connection>scm:git:https://github.com/wso2-extensions/identity-outbound-auth-office365.git
@@ -269,6 +275,7 @@
     </distributionManagement>
     <properties>
         <carbon.identity.version>5.0.7</carbon.identity.version>
+        <carbon.identity.framework.version>7.8.52</carbon.identity.framework.version>
         <carbon.identity.framework.imp.pkg.version.range>[5.7.0, 8.0.0)</carbon.identity.framework.imp.pkg.version.range>
         <commons-logging.version>4.4.3</commons-logging.version>
         <carbon.kernel.version>4.4.3</carbon.kernel.version>
