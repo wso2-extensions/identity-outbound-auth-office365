@@ -267,7 +267,7 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
         Map<String, String> authenticatorProperties = context.getAuthenticatorProperties();
         String clientId = authenticatorProperties.get(OIDCAuthenticatorConstants.CLIENT_ID);
         String redirectUri = authenticatorProperties.get(Office365AuthenticatorConstants.CALLBACK_URL);
-        if (StringUtils.isEmpty(redirectUri)) {
+        if (StringUtils.isBlank(redirectUri)) {
             redirectUri = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true);
         }
         String loginPage = getAuthorizationServerEndpoint(context.getAuthenticatorProperties());
