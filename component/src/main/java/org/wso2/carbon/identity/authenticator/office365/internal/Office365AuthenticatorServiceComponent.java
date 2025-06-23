@@ -24,6 +24,8 @@ import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.ComponentContext;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.authenticator.office365.Office365Authenticator;
+import org.wso2.carbon.identity.authenticator.office365.executor.Office365Executor;
+import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 
 import java.util.Hashtable;
 
@@ -40,6 +42,7 @@ public class Office365AuthenticatorServiceComponent {
             Hashtable<String, String> props = new Hashtable<String, String>();
             ctxt.getBundleContext().registerService(ApplicationAuthenticator.class.getName(),
                     authenticator, props);
+            ctxt.getBundleContext().registerService(Executor.class.getName(), new Office365Executor(), null);
             if (log.isDebugEnabled()) {
                 log.debug("office365 authenticator is activated");
             }
