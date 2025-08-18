@@ -45,6 +45,8 @@ import org.wso2.carbon.identity.application.common.model.ClaimMapping;
 import org.wso2.carbon.identity.application.common.model.Property;
 import org.wso2.carbon.identity.application.common.util.IdentityApplicationConstants;
 import org.wso2.carbon.identity.base.IdentityConstants;
+import org.wso2.carbon.identity.core.ServiceURLBuilder;
+import org.wso2.carbon.identity.core.URLBuilderException;
 import org.wso2.carbon.identity.core.util.IdentityUtil;
 
 import javax.servlet.http.HttpServletRequest;
@@ -58,7 +60,6 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -266,10 +267,7 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
 
         Map<String, String> authenticatorProperties = context.getAuthenticatorProperties();
         String clientId = authenticatorProperties.get(OIDCAuthenticatorConstants.CLIENT_ID);
-        String redirectUri = authenticatorProperties.get(Office365AuthenticatorConstants.CALLBACK_URL);
-        if (StringUtils.isBlank(redirectUri)) {
-            redirectUri = IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true);
-        }
+        String redirectUri = getCallbackUrl(authenticatorProperties);
         String loginPage = getAuthorizationServerEndpoint(context.getAuthenticatorProperties());
         String identifierParam = OIDCAuthenticatorConstants.OAUTH2_PARAM_STATE + EQUAL + context.getContextIdentifier()
                 + "," + Office365AuthenticatorConstants.AUTHENTICATOR_FRIENDLY_NAME;
@@ -525,6 +523,29 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
         }
         return StringUtils.EMPTY;
     }
+
+    /**
+     * Retrieves the callback URL from the authenticator properties.
+     * If not provided, falls back to the common authentication endpoint.
+     *
+     * @param authenticatorProperties the authenticator properties map.
+     * @return the callback URL.
+     * @throws IllegalStateException if the callback URL cannot be built.
+     */
+    protected String getCallbackUrl(Map<String, String> authenticatorProperties) {
+
+        String callbackUrl = authenticatorProperties.get(Office365AuthenticatorConstants.CALLBACK_URL);
+        if (StringUtils.isNotEmpty(callbackUrl)) {
+            return callbackUrl;
+        }
+
+        try {
+            return ServiceURLBuilder.create()
+                    .addPath(FrameworkConstants.COMMONAUTH)
+                    .build()
+                    .getAbsolutePublicURL();
+        } catch (URLBuilderException urlBuilderException) {
+            throw new RuntimeException("Error occurred while building the callback URL.", urlBuilderException);
+        }
+    }
 }
-
-
