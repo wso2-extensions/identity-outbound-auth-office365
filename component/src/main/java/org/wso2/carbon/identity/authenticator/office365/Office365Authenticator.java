@@ -532,6 +532,7 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
      * @return the callback URL.
      * @throws IllegalStateException if the callback URL cannot be built.
      */
+    @Override
     protected String getCallbackUrl(Map<String, String> authenticatorProperties) {
 
         String callbackUrl = authenticatorProperties.get(Office365AuthenticatorConstants.CALLBACK_URL);
