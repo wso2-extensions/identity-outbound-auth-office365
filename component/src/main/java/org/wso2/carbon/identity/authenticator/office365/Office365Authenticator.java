@@ -525,12 +525,13 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
     }
 
     /**
-     * Retrieves the callback URL from the authenticator properties.
-     * If not provided, falls back to the common authentication endpoint.
+     * Resolves the callback URL from the authenticator properties. If a callback URL is provided, that value is
+     * returned. If empty, returns the global commonauth endpoint when organization-specific commonauth is disabled,
+     * or otherwise the organization-specific commonauth endpoint.
      *
      * @param authenticatorProperties the authenticator properties map.
-     * @return the callback URL.
-     * @throws IllegalStateException if the callback URL cannot be built.
+     * @return the resolved callback URL.
+     * @throws RuntimeException if building the callback URL fails.
      */
     @Override
     protected String getCallbackUrl(Map<String, String> authenticatorProperties) {
@@ -540,13 +541,47 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
             return callbackUrl;
         }
 
+        if (!isOrgSpecificCommonAuthURLEnabled()) {
+            return IdentityUtil.getServerURL(FrameworkConstants.COMMONAUTH, true, true);
+        }
+
+        return buildOrgSpecificCommonAuthURL();
+    }
+
+    /**
+     * Returns whether the organization-specific commonauth endpoint is enabled in the authenticator parameters.
+     *
+     * @return true if organization-specific commonauth is enabled, false otherwise.
+     */
+    private boolean isOrgSpecificCommonAuthURLEnabled() {
+
+        if (getAuthenticatorConfig() == null || getAuthenticatorConfig().getParameterMap() == null) {
+            return false;
+        }
+
+        String value = getAuthenticatorConfig()
+                .getParameterMap()
+                .get(Office365AuthenticatorConstants.USE_ORG_SPECIFIC_COMMON_AUTH_URL);
+
+        return StringUtils.isNotBlank(value) && Boolean.parseBoolean(value);
+    }
+
+    /**
+     * Builds and returns the absolute public URL for the organization-specific commonauth endpoint.
+     *
+     * @return the organization-specific commonauth URL.
+     * @throws RuntimeException if URL building fails.
+     */
+    private String buildOrgSpecificCommonAuthURL() {
+
         try {
             return ServiceURLBuilder.create()
                     .addPath(FrameworkConstants.COMMONAUTH)
                     .build()
                     .getAbsolutePublicURL();
         } catch (URLBuilderException urlBuilderException) {
-            throw new RuntimeException("Error occurred while building the callback URL.", urlBuilderException);
+            throw new RuntimeException("Error occurred while building the organization-specific commonauth URL.",
+                    urlBuilderException);
         }
     }
 }
