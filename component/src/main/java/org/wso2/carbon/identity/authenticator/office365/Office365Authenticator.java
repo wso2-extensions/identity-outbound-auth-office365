@@ -563,7 +563,7 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
                 .getParameterMap()
                 .get(Office365AuthenticatorConstants.USE_ORG_SPECIFIC_COMMON_AUTH_URL);
 
-        return StringUtils.isNotBlank(value) && Boolean.parseBoolean(value);
+        return Boolean.parseBoolean(value);
     }
 
     /**
