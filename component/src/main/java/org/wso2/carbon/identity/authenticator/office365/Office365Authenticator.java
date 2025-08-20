@@ -537,7 +537,7 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
     protected String getCallbackUrl(Map<String, String> authenticatorProperties) {
 
         String callbackUrl = authenticatorProperties.get(Office365AuthenticatorConstants.CALLBACK_URL);
-        if (StringUtils.isNotEmpty(callbackUrl)) {
+        if (StringUtils.isNotBlank(callbackUrl)) {
             return callbackUrl;
         }
 
