@@ -62,4 +62,5 @@ public class Office365AuthenticatorConstants {
 //    public static final String STATE = "state";
     //Additional Query Parameters that need to be sent to IDP
     public static final String ADDITIONAL_QUERY_PARAMS = "AdditionalQueryParameters";
+    public static final String USE_ORG_SPECIFIC_COMMON_AUTH_URL = "UseOrgSpecificCommonAuthURL";
 }
