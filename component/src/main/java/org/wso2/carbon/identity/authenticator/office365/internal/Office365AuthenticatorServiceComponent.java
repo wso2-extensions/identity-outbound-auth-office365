@@ -22,6 +22,8 @@ package org.wso2.carbon.identity.authenticator.office365.internal;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.ComponentContext;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Component;
 import org.wso2.carbon.identity.application.authentication.framework.ApplicationAuthenticator;
 import org.wso2.carbon.identity.authenticator.office365.Office365Authenticator;
 import org.wso2.carbon.identity.authenticator.office365.executor.Office365Executor;
@@ -29,13 +31,15 @@ import org.wso2.carbon.identity.flow.execution.engine.graph.Executor;
 
 import java.util.Hashtable;
 
-/**
- * @scr.component name="identity.application.authenticator.office365.component" immediate="true"
- */
+@Component(
+        name = "identity.application.authenticator.office365.component",
+        immediate = true
+)
 public class Office365AuthenticatorServiceComponent {
 
     private static final Log log = LogFactory.getLog(Office365AuthenticatorServiceComponent.class);
 
+    @Activate
     protected void activate(ComponentContext ctxt) {
         try {
             Office365Authenticator authenticator = new Office365Authenticator();
