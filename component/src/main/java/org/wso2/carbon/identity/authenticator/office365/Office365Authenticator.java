@@ -76,7 +76,10 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
     private static final Log log = LogFactory.getLog(Office365Authenticator.class);
 
     private static final String DYNAMIC_PARAMETER_LOOKUP_REGEX = "\\$\\{(\\w+)\\}";
+    private static final String DYNAMIC_AUTH_PARAMS_LOOKUP_REGEX = "\\$authparam\\{(\\w+)\\}";
+    private static final String AUTH_PARAM = "$authparam";
     private static Pattern pattern = Pattern.compile(DYNAMIC_PARAMETER_LOOKUP_REGEX);
+    private static final Pattern AUTH_PARAM_PATTERN = Pattern.compile(DYNAMIC_AUTH_PARAMS_LOOKUP_REGEX);
 
     /**
      * Get Outlook authorization endpoint.
@@ -436,7 +439,7 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
         String queryParameters =
                 context.getAuthenticatorProperties().get(Office365AuthenticatorConstants.ADDITIONAL_QUERY_PARAMS);
         if (StringUtils.isNotBlank(queryParameters)) {
-            String resolvedQueryParams = getResolvedQueryParams(queryParameters, parameterMap);
+            String resolvedQueryParams = getResolvedQueryParams(context, queryParameters, parameterMap);
             context.getAuthenticatorProperties()
                     .put(Office365AuthenticatorConstants.ADDITIONAL_QUERY_PARAMS, resolvedQueryParams);
             return resolvedQueryParams;
@@ -445,18 +448,24 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
     }
 
     /**
-     * Checks for any dynamic query parameters and replaces it with the values in the request.
+     * Checks for any dynamic query parameters and replaces them with their values. $authparam{name} placeholders
+     * are resolved from the authenticator params passed by the adaptive script, and ${name} placeholders from the
+     * request.
      *
+     * @param context          The authentication context.
      * @param queryParamString The query parameter string.
      * @param parameters       The parameter map of the request.
      * @return The query parameter string with the dynamic parameters replaced with the actual values.
      * @throws AuthenticationFailedException if an error occurs while resolving dynamic parameters.
      */
-    private String getResolvedQueryParams(String queryParamString, Map<String, String[]> parameters)
-            throws AuthenticationFailedException {
+    private String getResolvedQueryParams(AuthenticationContext context, String queryParamString,
+                                          Map<String, String[]> parameters) throws AuthenticationFailedException {
 
         if (StringUtils.isBlank(queryParamString)) {
             return StringUtils.EMPTY;
+        }
+        if (queryParamString.contains(AUTH_PARAM)) {
+            queryParamString = getQueryStringWithAuthenticatorParams(context, queryParamString);
         }
         Matcher matcher = pattern.matcher(queryParamString);
         while (matcher.find()) {
@@ -473,6 +482,33 @@ public class Office365Authenticator extends OpenIDConnectAuthenticator implement
         }
         if (log.isDebugEnabled()) {
             log.debug("Output QueryString: " + queryParamString);
+        }
+        return queryParamString;
+    }
+
+    /**
+     * Replaces $authparam{name} placeholders with the matching authenticator params passed by the adaptive script.
+     * A placeholder without a matching param is replaced with an empty value.
+     *
+     * @param context          The authentication context.
+     * @param queryParamString The query parameter string.
+     * @return The query parameter string with the authenticator params replaced with their values.
+     */
+    private String getQueryStringWithAuthenticatorParams(AuthenticationContext context, String queryParamString) {
+
+        Map<String, String> runtimeParams = getRuntimeParams(context);
+        Matcher matcher = AUTH_PARAM_PATTERN.matcher(queryParamString);
+        while (matcher.find()) {
+            String name = matcher.group(1);
+            String value = StringUtils.EMPTY;
+            if (runtimeParams != null && StringUtils.isNotEmpty(runtimeParams.get(name))) {
+                value = runtimeParams.get(name);
+            }
+            if (log.isDebugEnabled()) {
+                log.debug("InterpretQueryString with authenticator param: " + name + ", value: " + value);
+            }
+            queryParamString = queryParamString.replaceAll("\\$authparam\\{" + name + "}",
+                    Matcher.quoteReplacement(value));
         }
         return queryParamString;
     }
